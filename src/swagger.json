@@ -1,0 +1,18 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MTG Local arena",
+    "version": "1.0.0",
+    "description": "API aimed at local play group to plan some events"
+  },
+  "paths": {
+    "/api-doc": {
+      "get": {
+        "tags": [
+          "Documentation"
+        ],
+      "summary": "The page you're on, it's the documentation"
+      }
+    }
+  }
+}
