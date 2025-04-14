@@ -7,9 +7,11 @@ const formatModel = (Sequelize) => {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
                 autoIncrement: true,
-                allowNull: false,
             },
-            name:{}
+            name:{
+                type: DataTypes.STRING,
+                allowNull: false,
+            }
         },
         {
             tableName:'formats',

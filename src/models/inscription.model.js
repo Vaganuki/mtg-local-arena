@@ -7,7 +7,6 @@ const inscriptionModel = (Sequelize) => {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
                 autoIncrement: true,
-                allowNull: false,
             },
             id_event: {
                 type: DataTypes.INTEGER,
