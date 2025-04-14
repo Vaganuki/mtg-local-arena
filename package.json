@@ -1,0 +1,41 @@
+{
+  "name": "mtg-local-arena",
+  "version": "1.0.0",
+  "description": "An api aimed at local play group to plan some events",
+  "keywords": [
+    "MTG"
+  ],
+  "homepage": "https://github.com/Vaganuki/mtg-local-arena#readme",
+  "bugs": {
+    "url": "https://github.com/Vaganuki/mtg-local-arena/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vaganuki/mtg-local-arena.git"
+  },
+  "license": "ISC",
+  "author": "Vaganuki",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon --env-file=.env ./src/app.js",
+    "start": "node --env-file=.env ./src/app.js"
+  },
+  "devDependencies": {
+    "cors": "^2.8.5",
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "argon2": "^0.41.1",
+    "express": "^5.1.0",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.2",
+    "path": "^0.12.7",
+    "pg": "^8.14.1",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7",
+    "swagger-ui-express": "^5.0.1",
+    "yup": "^1.6.1"
+  }
+}
