@@ -16,6 +16,14 @@ const commentModel = (Sequelize) => {
                     key: 'id',
                 }
             },
+            id_user:{
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              references: {
+                  model: 'users',
+                  key: 'id',
+              }
+            },
             content:{
                 type: DataTypes.STRING,
                 allowNull: false,
