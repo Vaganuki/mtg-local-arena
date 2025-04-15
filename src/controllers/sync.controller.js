@@ -1,9 +1,8 @@
-const db = require('../models');
+const db = require('../models/index');
 const syncController = {
-    sync: (req, res) => {
+    sync: async (req, res) => {
         try {
-            db.sequelize.sync()
-                .then();
+            await db.sequelize.sync();
             res.status(200).send('Db synced successfully');
         } catch (error) {
             console.error(error);
