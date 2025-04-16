@@ -1,5 +1,5 @@
-import {Op} from "sequelize";
-import db from "../models";
+const {Op} = require("sequelize");
+const db = require("../models");
 
 const eventController = {
     getAllNext: async (req, res) => {
