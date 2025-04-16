@@ -63,5 +63,26 @@ const eventController = {
             console.error(err);
             res.status(500).send({error: err});
         }
+    },
+    getById: async (req, res) => {
+        try {
+            const id = +req.params.id;
+            const event = await db.events.findOne({
+                where: {id},
+                include: [
+                    db.categories,
+                    db.formats,
+                    db.inscriptions,
+                ]
+            });
+            if (event) {
+                return res.status(200).json(event);
+            } else {
+                res.status(404).send({error: 'Not Found'});
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({error: err});
+        }
     }
 }
