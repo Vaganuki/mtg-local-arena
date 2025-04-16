@@ -34,6 +34,9 @@ const userModel = (sequelize) => {
                 type: DataTypes.DATE,
                 allowNull: false,
             },
+            profileImage: {
+                type: DataTypes.STRING,
+            }
         },
         {
             tableName: 'users',

@@ -1,7 +1,11 @@
 const db = require("../models");
 const argon2 = require("argon2");
+const fs = require('fs');
+const jwt = require("jsonwebtoken");
+
 const userController = {
     addNewUser: async (req, res) => {
+        const profileImage = req.file ? req.file.filename : null;
         try {
             const {username, email, password, firstname, lastname, birthdate} = req.body;
             const user = await db.users.findOne({
@@ -19,14 +23,21 @@ const userController = {
                     firstname,
                     lastname,
                     birthdate,
+                    profileImage,
                 });
                 return res.status(201).json(data);
             } else {
-                return res.status(400).json({error: "Username or email already in use"});
+                if (profileImage !== null) {
+                    fs.unlinkSync(__dirname + '../public/images/' + req.file.filename);
+                }
+                return res.status(409).json({error: "Username or email already taken"});
             }
         } catch (err) {
+            if (profileImage !== null) {
+                fs.unlinkSync(__dirname + '../public/images/' + req.file.filename);
+            }
             console.error(err);
-            res.status(500).send({error: err})
+            res.status(500).send({error: "An unexpected error occurred"})
         }
     },
     logUser: async (req, res) => {
@@ -38,7 +49,7 @@ const userController = {
             });
         } catch (err) {
             console.error(err);
-            res.status(500).send({error: err});
+            res.status(500).send({error: "An unexpected error occurred"});
             return;
         }
         if (user) {
