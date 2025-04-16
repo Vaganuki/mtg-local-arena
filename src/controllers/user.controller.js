@@ -1,4 +1,5 @@
 const db = require("../models");
+const argon2 = require("argon2");
 const userController = {
 
     addNewUser: async (req, res) => {
@@ -11,7 +12,7 @@ const userController = {
                 }
             });
             if (!user) {
-                const hash = password;
+                const hash = await argon2.hash(password);
                 const data = await db.users.create({
                     username,
                     email,
