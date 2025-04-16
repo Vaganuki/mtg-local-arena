@@ -84,5 +84,7 @@ const eventController = {
             console.error(err);
             res.status(500).send({error: err});
         }
-    }
+    },
 }
+
+module.exports = eventController;
