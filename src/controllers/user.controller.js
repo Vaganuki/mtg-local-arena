@@ -42,10 +42,12 @@ const userController = {
     },
     logUser: async (req, res) => {
         let user = null;
-        const {mail, password} = req.body;
+        const {email, password} = req.body;
         try {
             user = await db.users.findOne({
-                where: mail
+                where: {
+                    email
+                }
             });
         } catch (err) {
             console.error(err);
@@ -54,7 +56,7 @@ const userController = {
         }
         if (user) {
             try {
-                if (await argon2.verify(password, user.password)) {
+                if (await argon2.verify(user.password, password)) {
                     const token = jwt.sign({
                         id: user.id,
                         username: user.username,
@@ -69,7 +71,7 @@ const userController = {
                 }
             } catch (err) {
                 console.error(err);
-                res.status(500).send({error: err});
+                res.status(500).send({error:  "An unexpected error occurred"});
             }
         } else {
             res.status(401).send({error: "Invalid Credentials"});

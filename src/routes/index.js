@@ -5,7 +5,7 @@ const eventRouter = require("./event.router");
 const userRouter = require("./user.router");
 
 router.get('/sync', syncController.sync)
-    .use('/events', eventRouter)
+    .use('/event', eventRouter)
     .use('/user', userRouter);
 
 module.exports = router;

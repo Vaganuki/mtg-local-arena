@@ -3,7 +3,7 @@
   "info": {
     "title": "MTG Local arena",
     "version": "1.0.0",
-    "description": "API aimed at local play group to plan some events"
+    "description": "API aimed at local play group to plan events."
   },
   "paths": {
     "/api-doc": {
@@ -11,7 +11,482 @@
         "tags": [
           "Documentation"
         ],
-      "summary": "The page you're on, it's the documentation"
+        "summary": "The page you're on, it's the documentation."
+      }
+    },
+    "/user/login": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Sends a JWT token of an user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/login"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successfully connected; send a JWT token back.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid Credentials."
+          },
+          "500": {
+            "description": "An unexpected error occurred."
+          }
+        }
+      }
+    },
+    "/user/sign_up": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Create a new user in the database.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/user"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Username or email already taken."
+          },
+          "500": {
+            "description": "An unexpected error occurred."
+          }
+        }
+      }
+    },
+    "/event": {
+      "get": {
+        "tags": [
+          "Event"
+        ],
+        "summary": "Retrieve every event that didn't occur yet.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page's number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Amount of event you're getting",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "type": [
+                      "array"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/event_get"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "500": {
+            "description": "An unexpected error occurred."
+          }
+        }
+      }
+    },
+    "/event/all": {
+      "get": {
+        "tags": [
+          "Event"
+        ],
+        "summary": "Retrieve every event with a filtering system.",
+        "parameters": [
+          {
+            "name": "id_category",
+            "in": "query",
+            "description": "Filter by category.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": null
+            }
+          },
+          {
+            "name": "id_format",
+            "in": "query",
+            "description": "Filter by format.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": null
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "description": "Filter by date.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "default": null
+            }
+          },
+          {
+            "name": "searchQuery",
+            "in": "query",
+            "description": "Filter by term.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "type": [
+                      "array"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/event_get"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "500": {
+            "description": "An unexpected error occurred."
+          }
+        }
+      }
+    },
+    "/event/{id}": {
+      "get": {
+        "tags": [
+          "Event"
+        ],
+        "summary": "Retrieve an event by his ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the desired event.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "type": [
+                      "array"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/event_get"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "500": {
+            "description": "An unexpected error occurred."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "login": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "example@email.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 8,
+            "pattern": "^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z])(?=.*[!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]).{8,}$",
+            "example": "Password1234!"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "user": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "user123"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "example@email.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 8,
+            "pattern": "^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z])(?=.*[!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]).{8,}$",
+            "example": "Password1234!"
+          },
+          "firstname": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastname": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "birthdate": {
+            "type": "string",
+            "format": "date",
+            "example": "2000-06-29"
+          },
+          "profileImage": {
+            "type": "file",
+            "description": "Profile picture.",
+            "in": "formData"
+          }
+        },
+        "required": [
+          "username",
+          "email",
+          "password",
+          "firstname",
+          "lastname",
+          "birthdate"
+        ]
+      },
+      "event": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "places_count": {
+            "type": "integer"
+          },
+          "location": {
+            "type": "string"
+          },
+          "id_format": {
+            "type": "integer"
+          },
+          "id_category": {
+            "type": "integer"
+          },
+          "annulation": {
+            "type": "boolean",
+            "default": "false"
+          },
+          "image": {
+            "type": "string",
+            "format": "url"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id_creator": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "places_count",
+          "location",
+          "id_format",
+          "id_category",
+          "date",
+          "id_creator"
+        ]
+      },
+      "event_get": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "places_count": {
+            "type": "integer"
+          },
+          "location": {
+            "type": "string"
+          },
+          "id_format": {
+            "type": "integer"
+          },
+          "id_category": {
+            "type": "integer"
+          },
+          "annulation": {
+            "type": "boolean",
+            "default": "false"
+          },
+          "image": {
+            "type": "string",
+            "format": "url"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id_creator": {
+            "type": "integer"
+          },
+          "category": {
+            "$ref": "#/components/schemas/category"
+          },
+          "format": {
+            "$ref": "#/components/schemas/format"
+          },
+          "inscriptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/inscriptions"
+            }
+          }
+        }
+      },
+      "category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "format": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "inscriptions": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "id_event": {
+            "type": "integer",
+            "example": 1
+          },
+          "id_user": {
+            "type": "integer",
+            "example": 1
+          }
+        }
       }
     }
   }
