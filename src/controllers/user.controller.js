@@ -61,7 +61,7 @@ const userController = {
                         email: user.email,
                     }, process.env.JWT_SECRET, {
                         expiresIn: process.env.JWT_EXPIRE,
-                        algorithm: "HS256",
+                        algorithm: process.env.JWT_ALGORITHM,
                     });
                     res.status(202).json({token});
                 } else {
