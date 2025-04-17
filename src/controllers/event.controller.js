@@ -1,5 +1,6 @@
 const {Op} = require("sequelize");
 const db = require("../models");
+const fs = require("fs");
 
 const eventController = {
     getAllNext: async (req, res) => {
@@ -26,7 +27,7 @@ const eventController = {
             }
         } catch (err) {
             console.error(err);
-            res.status(500).send({error: err});
+            res.status(500).send({error: "An unexpected error occurred"});
         }
     },
     getAllEvents: async (req, res) => {
@@ -82,9 +83,58 @@ const eventController = {
             }
         } catch (err) {
             console.error(err);
-            res.status(500).send({error: err});
+            res.status(500).send({error: "An unexpected error occurred"});
         }
     },
+    createEvent : async (req, res) => {
+        const image = req.file ? req.file.filename : null;
+        try{
+            const {name, description, places_count, location, id_format, id_category, annulation, date} = req.body;
+            const event = await db.events.findOne({
+                where: {
+                    name,
+                    id_category,
+                    date,
+                    location,
+                }
+            });
+            const user = await db.users.findOne({
+                where: {
+                    id : req.user.id
+                }
+            });
+            if(!event && user) {
+                const data = await db.events.create({
+                    name,
+                    description,
+                    places_count,
+                    location,
+                    id_format,
+                    id_category,
+                    annulation,
+                    image,
+                    date,
+                    id_creator: req.user.id,
+                });
+                res.status(201).json(data);
+            } else {
+                if (image !== null) {
+                    fs.unlinkSync(__dirname + '/../public/images/' + req.file.filename);
+                }
+                if (!user){
+                    res.status(400).json({ error: `You must be logged in to create an event` });
+                } else {
+                    res.status(400).json({error: `This event already exists`});
+                }
+            }
+        }catch (err) {
+            if (image !== null) {
+                fs.unlinkSync(__dirname + '/../public/images/' + req.file.filename);
+            }
+            console.error(err);
+            res.status(500).send({error: "An unexpected error occurred"});
+        }
+    }
 }
 
 module.exports = eventController;
