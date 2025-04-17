@@ -1,6 +1,7 @@
 const {Op} = require("sequelize");
 const db = require("../models");
 const fs = require("fs");
+const imageDelete = require('../core/utils');
 
 const eventController = {
     getAllNext: async (req, res) => {
@@ -86,53 +87,112 @@ const eventController = {
             res.status(500).send({error: "An unexpected error occurred"});
         }
     },
-    createEvent : async (req, res) => {
+    createEvent: async (req, res) => {
         const image = req.file ? req.file.filename : null;
-        try{
-            const {name, description, places_count, location, id_format, id_category, annulation, date} = req.body;
-            const event = await db.events.findOne({
-                where: {
-                    name,
-                    id_category,
-                    date,
-                    location,
-                }
-            });
-            const user = await db.users.findOne({
-                where: {
-                    id : req.user.id
-                }
-            });
-            if(!event && user) {
-                const data = await db.events.create({
-                    name,
-                    description,
-                    places_count,
-                    location,
-                    id_format,
-                    id_category,
-                    annulation,
-                    image,
-                    date,
-                    id_creator: req.user.id,
+        if (req.user) {
+            try {
+                const {name, description, places_count, location, id_format, id_category, annulation, date} = req.body;
+                const event = await db.events.findOne({
+                    where: {
+                        name,
+                        id_category,
+                        date,
+                        location,
+                    }
                 });
-                res.status(201).json(data);
-            } else {
-                if (image !== null) {
-                    fs.unlinkSync(__dirname + '/../public/images/' + req.file.filename);
-                }
-                if (!user){
-                    res.status(400).json({ error: `You must be logged in to create an event` });
+                if (!event) {
+                    const data = await db.events.create({
+                        name,
+                        description,
+                        places_count,
+                        location,
+                        id_format,
+                        id_category,
+                        annulation,
+                        image,
+                        date,
+                        id_creator: req.user.id,
+                    });
+                    res.status(201).json(data);
                 } else {
+                    imageDelete(image, req.file.filename);
                     res.status(400).json({error: `This event already exists`});
                 }
+            } catch (err) {
+                imageDelete(image, req.file.filename);
+                console.error(err);
+                res.status(500).send({error: "An unexpected error occurred"});
             }
-        }catch (err) {
-            if (image !== null) {
-                fs.unlinkSync(__dirname + '/../public/images/' + req.file.filename);
+        } else {
+            imageDelete(image, req.file.filename);
+            res.status(401).json({error: `You must be logged in to create an event`});
+        }
+    },
+    updateEvent: async (req, res) => {
+        let image = req.file ? req.file.filename : null;
+        if (req.user) {
+            let event = null
+            try {
+                event = await db.events.findOne({
+                    where: {
+                        id: +req.params.id,
+                    }
+                });
+            } catch (err) {
+                imageDelete(image, req.file.filename);
+                console.error(err);
+                res.status(500).send({error: "An unexpected error occurred"});
             }
-            console.error(err);
-            res.status(500).send({error: "An unexpected error occurred"});
+            try {
+                if (event) {
+                    if (event.id_creator === req.user.id) {
+                        const {
+                            name,
+                            description,
+                            places_count,
+                            location,
+                            id_format,
+                            id_category,
+                            annulation,
+                            date
+                        } = req.body;
+                        if (image !== null) {
+                            imageDelete(event.image, event.image);
+                        } else {
+                            image = event.image;
+                        }
+                        await db.events.update(
+                            {
+                                name,
+                                description,
+                                places_count,
+                                location,
+                                id_format,
+                                id_category,
+                                annulation,
+                                date,
+                                image
+                            },
+                            {
+                                where: {id: +req.params.id},
+                            });
+                        res.status(201).json({update: event});
+                    } else {
+                        imageDelete(image, req.file.filename);
+                        res.status(401).send({error: 'Only the creator of this event can update it'});
+                    }
+                } else {
+                    imageDelete(image, req.file.filename);
+                    res.status(404).json({error: `Not Found`});
+                }
+            } catch (err) {
+                imageDelete(image, req.file.filename);
+                console.error(err);
+                res.status(500).send({error: "An unexpected error occurred"});
+            }
+        } else {
+            imageDelete(image, req.file.filename);
+            res.status(401).json({error: `You must be logged in to update an event`});
         }
     }
 }

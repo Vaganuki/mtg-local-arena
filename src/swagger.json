@@ -264,6 +264,104 @@
           }
         }
       }
+    },
+    "/event/new": {
+      "post": {
+        "tags": [
+          "Event"
+        ],
+        "summary": "Create a new event.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/event_new"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Event successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/event"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The event already exists."
+          },
+          "401": {
+            "description": "Unauthenticated Used."
+          },
+          "500": {
+            "description": "An unexpected error occurred."
+          }
+        }
+      }
+    },
+    "/event/{id}/update" : {
+      "put": {
+        "tags": [
+          "Event"
+        ],
+        "summary": "Update an event.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the desired event.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/event_new"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Event successfully updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/event"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated Used."
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "500": {
+            "description": "An unexpected error occurred."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -392,6 +490,74 @@
           "id_category",
           "date",
           "id_creator"
+        ]
+      },
+      "event_new": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Event's name",
+            "in": "formData",
+            "example": "Friday Night Magic"
+          },
+          "description": {
+            "type": "string",
+            "description": "Event's description",
+            "in": "fromData",
+            "example": "Your local fun and casual friday !"
+          },
+          "places_count": {
+            "type": "integer",
+            "description": "Event's number of places",
+            "in": "formData",
+            "example": 16
+          },
+          "location": {
+            "type": "string",
+            "description": "Event's location",
+            "in": "formData",
+            "example": "Liège"
+          },
+          "id_format": {
+            "type": "integer",
+            "description": "Event's format's ID",
+            "in": "formData",
+            "example": 6
+          },
+          "id_category": {
+            "type": "integer",
+            "description": "Event's category's ID",
+            "in": "formData",
+            "example":1
+          },
+          "annulation": {
+            "type": "boolean",
+            "default": "false",
+            "description": "Is the event canceled ?",
+            "in": "formData"
+          },
+          "image": {
+            "type": "file",
+            "description": "Event's picture",
+            "in": "formData",
+            "default": ""
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Event's date and time",
+            "in": "formData"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "places_count",
+          "location",
+          "id_format",
+          "id_category",
+          "date"
         ]
       },
       "event_get": {
