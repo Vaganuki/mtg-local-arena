@@ -1,7 +1,7 @@
 const db = require("../models");
 const argon2 = require("argon2");
-const fs = require('fs');
 const jwt = require("jsonwebtoken");
+const imageDelete = require("../core/utils");
 
 const userController = {
     addNewUser: async (req, res) => {
@@ -27,15 +27,11 @@ const userController = {
                 });
                 return res.status(201).json(data);
             } else {
-                if (profileImage !== null) {
-                    fs.unlinkSync(__dirname + '../public/images/' + req.file.filename);
-                }
+                imageDelete(profileImage);
                 return res.status(409).json({error: "Username or email already taken"});
             }
         } catch (err) {
-            if (profileImage !== null) {
-                fs.unlinkSync(__dirname + '../public/images/' + req.file.filename);
-            }
+            imageDelete(profileImage);
             console.error(err);
             res.status(500).send({error: "An unexpected error occurred"})
         }

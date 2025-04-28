@@ -1,6 +1,5 @@
 const {Op} = require("sequelize");
 const db = require("../models");
-const fs = require("fs");
 const imageDelete = require('../core/utils');
 
 const eventController = {
@@ -115,16 +114,16 @@ const eventController = {
                     });
                     res.status(201).json(data);
                 } else {
-                    imageDelete(image, req.file.filename);
+                    imageDelete(image);
                     res.status(400).json({error: `This event already exists`});
                 }
             } catch (err) {
-                imageDelete(image, req.file.filename);
+                imageDelete(image);
                 console.error(err);
                 res.status(500).send({error: "An unexpected error occurred"});
             }
         } else {
-            imageDelete(image, req.file.filename);
+            imageDelete(image);
             res.status(401).json({error: `You must be logged in to create an event`});
         }
     },
@@ -139,7 +138,7 @@ const eventController = {
                     }
                 });
             } catch (err) {
-                imageDelete(image, req.file.filename);
+                imageDelete(image);
                 console.error(err);
                 res.status(500).send({error: "An unexpected error occurred"});
             }
@@ -156,8 +155,8 @@ const eventController = {
                             annulation,
                             date
                         } = req.body;
-                        if (image !== null) {
-                            imageDelete(event.image, event.image);
+                        if (image != null) {
+                            imageDelete(event.image);
                         } else {
                             image = event.image;
                         }
@@ -178,20 +177,20 @@ const eventController = {
                             });
                         res.status(201).json({update: event});
                     } else {
-                        imageDelete(image, req.file.filename);
+                        imageDelete(image);
                         res.status(401).send({error: 'Only the creator of this event can update it'});
                     }
                 } else {
-                    imageDelete(image, req.file.filename);
+                    imageDelete(image);
                     res.status(404).json({error: `Not Found`});
                 }
             } catch (err) {
-                imageDelete(image, req.file.filename);
+                imageDelete(image);
                 console.error(err);
                 res.status(500).send({error: "An unexpected error occurred"});
             }
         } else {
-            imageDelete(image, req.file.filename);
+            imageDelete(image);
             res.status(401).json({error: `You must be logged in to update an event`});
         }
     }
