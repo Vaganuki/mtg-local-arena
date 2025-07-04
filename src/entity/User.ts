@@ -9,6 +9,9 @@ export class User {
     @Column({ type: 'varchar', length: 100, unique: true })
     username: string;
 
+    @Column({type: 'varchar', unique: true})
+    email: string;
+
     @Column({length: 100})
     firstName: string;
 
@@ -17,9 +20,6 @@ export class User {
 
     @Column()
     password: string;
-
-    @Column({type: 'varchar', unique: true})
-    email: string;
 
     @Column()
     birthdate: Date;
