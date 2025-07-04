@@ -1,36 +1,40 @@
 {
-  "name": "mtg-local-arena",
-  "version": "1.0.1",
-  "description": "Back-End side of Tavern Of Sparks; it's a social network aimed at local mtg playgroups",
-  "homepage": "https://github.com/Vaganuki/mtg-local-arena#readme",
-  "bugs": {
-    "url": "https://github.com/Vaganuki/mtg-local-arena/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Vaganuki/mtg-local-arena.git"
-  },
-  "license": "ISC",
-  "author": "SleepyBoi",
-  "type": "commonjs",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "argon2": "^0.43.0",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "multer": "^2.0.1",
-    "pg": "^8.16.3",
-    "pg-hstore": "^2.3.4",
-    "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.25",
-    "yup": "^1.6.1"
-  },
-  "devDependencies": {
-    "ts-node": "^10.9.2",
-    "tsc-watch": "^7.1.1",
-    "typescript": "^5.8.3"
-  }
+   "name": "mtg-local-arena",
+   "version": "1.0.1",
+   "description": "Back-End side of Tavern Of Sparks; it's a social network aimed at local mtg playgroups",
+   "homepage": "https://github.com/Vaganuki/mtg-local-arena#readme",
+   "bugs": {
+      "url": "https://github.com/Vaganuki/mtg-local-arena/issues"
+   },
+   "repository": {
+      "type": "git",
+      "url": "git+https://github.com/Vaganuki/mtg-local-arena.git"
+   },
+   "license": "ISC",
+   "author": "SleepyBoi",
+   "type": "commonjs",
+   "main": "index.ts",
+   "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "start": "ts-node src/index.ts",
+      "typeorm": "typeorm-ts-node-commonjs"
+   },
+   "dependencies": {
+      "argon2": "^0.43.0",
+      "express": "^5.1.0",
+      "jsonwebtoken": "^9.0.2",
+      "multer": "^2.0.1",
+      "pg": "^8.14.1",
+      "pg-hstore": "^2.3.4",
+      "swagger-ui-express": "^5.0.1",
+      "typeorm": "0.3.25",
+      "zod": "^3.25.73",
+      "reflect-metadata": "^0.2.2"
+   },
+   "devDependencies": {
+      "@types/node": "^22.13.10",
+      "ts-node": "^10.9.2",
+      "typescript": "^5.8.3",
+      "tsc-watch": "^7.1.1"
+   }
 }

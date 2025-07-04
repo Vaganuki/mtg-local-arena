@@ -1,4 +1,6 @@
-.env
-node_modules
-src/public/
-.idea
+.idea/
+.vscode/
+node_modules/
+build/
+tmp/
+temp/
