@@ -1,6 +1,9 @@
 import "reflect-metadata"
-import { DataSource } from "typeorm"
-import { User } from "./entity/User"
+import {DataSource} from "typeorm"
+import {User} from "./entity/User"
+import {Game_format} from "./entity/Game_format";
+import {Favorite_format} from "./entity/Favorite_format";
+import {Thread} from "./entity/Thread";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -11,7 +14,12 @@ export const AppDataSource = new DataSource({
     database: "MTG-LOCAL-ARENA",
     synchronize: true, // À retirer en prod
     logging: true,
-    entities: [User],
+    entities: [
+        User,
+        Thread,
+        Game_format,
+        Favorite_format,
+    ],
     migrations: [],
     subscribers: [],
 })

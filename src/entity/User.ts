@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
+import {Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany} from "typeorm"
+import {Thread} from "./Thread";
+import {Favorite_format} from "./Favorite_format";
+import {Decklist} from "./Decklist";
+import {Comment} from "./Comment";
+import {Participation} from "./Participation";
 
 @Entity()
 export class User {
@@ -6,7 +11,7 @@ export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'varchar', length: 100, unique: true })
+    @Column({type: 'varchar', length: 100, unique: true})
     username: string;
 
     @Column({type: 'varchar', unique: true})
@@ -26,4 +31,19 @@ export class User {
 
     @Column({type: 'text', nullable: true})
     profileImage: string | null;
+
+    @OneToMany(()=> Thread, (thread) => thread.user)
+    threads: Thread[];
+
+    @OneToMany(()=> Favorite_format, (favorite) => favorite.user)
+    favorites: Favorite_format[];
+
+    @OneToMany(()=> Decklist, (deck) => deck.user)
+    decklists: Decklist[];
+
+    @OneToMany(()=> Comment, (comment) => comment.user)
+    comments: Comment[];
+
+    @ManyToMany(() => Participation, (participation) => participation.users)
+    participation: Participation[];
 }
