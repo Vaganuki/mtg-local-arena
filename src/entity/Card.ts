@@ -1,9 +1,9 @@
-import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, OneToMany, PrimaryColumn} from "typeorm";
 import {Card_printing} from "./Card_printing";
 
 @Entity()
 export class Card {
-    @PrimaryGeneratedColumn()
+    @PrimaryColumn({type: 'uuid'})
     oracle_id: string;
 
     @Column()
@@ -12,17 +12,17 @@ export class Card {
     @Column()
     type_line: string;
 
-    @Column()
-    oracle_text: string;
+    @Column({nullable: true})
+    oracle_text: string | null;
 
-    @Column()
+    @Column("float")
     cmc: number;
 
-    @Column()
-    power: string;
+    @Column({nullable: true})
+    power: string | null;
 
-    @Column()
-    toughness: string;
+    @Column({nullable: true})
+    toughness: string | null;
 
     @OneToMany(() => Card_printing, (printing) => printing.card)
     printings: Card_printing[];

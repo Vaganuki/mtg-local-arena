@@ -3,7 +3,7 @@ import {Card_printing} from "./Card_printing";
 
 @Entity()
 export class Set {
-    @PrimaryColumn()
+    @PrimaryColumn({type: 'varchar', length: 10})
     code: string;
 
     @Column()

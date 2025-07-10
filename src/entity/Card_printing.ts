@@ -1,11 +1,11 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinColumn, ManyToOne, PrimaryColumn} from "typeorm";
 import {Card} from "./Card";
 import {Set} from "./Set";
 
 
 @Entity()
 export class Card_printing {
-    @PrimaryGeneratedColumn()
+    @PrimaryColumn({type: 'uuid'})
     id: string;
 
     @ManyToOne(() => Card, (card) => card.printings)
@@ -13,6 +13,7 @@ export class Card_printing {
     card: Card;
 
     @ManyToOne(() => Set, (set) => set.printings)
+    @JoinColumn({name: 'set_code'})
     set: Set;
 
     @Column()
@@ -21,7 +22,7 @@ export class Card_printing {
     @Column()
     rarity: string;
 
-    @Column({type : "jsonb", nullable: true})
+    @Column({type: "jsonb", nullable: true})
     image_uris: {
         small?: string;
         normal?: string;
@@ -30,4 +31,9 @@ export class Card_printing {
         border_crop?: string;
     }
 
+    @Column({nullable: true})
+    flavor_text: string | null;
+
+    @Column({nullable: true})
+    artist: string | null;
 }
