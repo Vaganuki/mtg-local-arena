@@ -106,6 +106,27 @@ export class UserController {
     }
 
     static async deleteUser(req: Request, res: Response): Promise<Response> {
+
+        const userId = parseInt(req.params.id);
+        const userRepo = AppDataSource.getRepository(User);
+
+        try {
+            const user = await userRepo.findOne({where: {id: userId}});
+
+            if (!user) {
+                return res.status(404).json({error: "User not found."});
+            }
+
+            //DELETE THE PROFILE PIC
+
+            await userRepo.remove(user);
+
+            return res.status(204).send();
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({error: "An unexpected error occurred."});
+        }
+
     }
 
     static async logUser(req: Request, res: Response): Promise<Response> {
