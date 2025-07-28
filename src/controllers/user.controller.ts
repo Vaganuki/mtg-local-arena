@@ -50,6 +50,21 @@ export class UserController {
     }
 
     static async getUserById(req: Request, res: Response): Promise<Response> {
+        const userId = parseInt(req.params.id);
+        const userRepo = AppDataSource.getRepository(User);
+
+        try {
+            const user = await userRepo.findOne({where: {id: userId}});
+
+            if (!user) {
+                return res.status(404).json({error: "User not found."});
+            }
+
+            return res.status(200).json(user);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({error: "An unexpected error occurred."});
+        }
     }
 
     static async updateUser(req: Request, res: Response): Promise<Response> {
