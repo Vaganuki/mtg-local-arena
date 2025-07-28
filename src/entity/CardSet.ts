@@ -2,7 +2,7 @@ import {Column, Entity, OneToMany, PrimaryColumn} from "typeorm";
 import {Card_printing} from "./Card_printing";
 
 @Entity()
-export class Set {
+export class cardSet {
     @PrimaryColumn({type: 'varchar', length: 10})
     code: string;
 

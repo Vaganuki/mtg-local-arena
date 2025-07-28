@@ -1,6 +1,6 @@
 import {Column, Entity, JoinColumn, ManyToOne, PrimaryColumn} from "typeorm";
 import {Card} from "./Card";
-import {Set} from "./Set";
+import {cardSet} from "./CardSet";
 
 
 @Entity()
@@ -12,9 +12,9 @@ export class Card_printing {
     @JoinColumn({name: 'oracle_id'})
     card: Card;
 
-    @ManyToOne(() => Set, (set) => set.printings)
+    @ManyToOne(() => cardSet, (set) => set.printings)
     @JoinColumn({name: 'set_code'})
-    set: Set;
+    set: cardSet;
 
     @Column()
     collector_number: string;

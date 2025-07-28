@@ -12,7 +12,7 @@ import {Category} from "./entity/Category";
 import {Deck_card} from "./entity/Deck_card";
 import {Comment} from "./entity/Comment";
 import {Participation} from "./entity/Participation";
-import {Set} from "./entity/Set";
+import {cardSet} from "./entity/CardSet";
 
 
 export const AppDataSource = new DataSource({
@@ -35,7 +35,7 @@ export const AppDataSource = new DataSource({
         Favorite_format,
         Game_format,
         Participation,
-        Set,
+        cardSet,
         Thread,
         User,
     ],
