@@ -9,9 +9,10 @@ import axios from "axios";
 const DATA_DIR = path.resolve(__dirname, '../../data');
 const BULK_PATH = path.join(DATA_DIR, 'default-cards.json');
 const METADATA_PATH = path.join(DATA_DIR, 'bulk-metadata.json');
+const IMPORT_METADATA_PATH = path.join(DATA_DIR, 'import-metadata.json');
 
 async function getBulkMetadata() {
-    console.log("Checking bulk data info...");
+    console.log("🔍 Checking bulk data info...");
     const res = await axios.get('https://api.scryfall.com/bulk-data');
     const bulkDefault = res.data.data.find((entry: any) => entry.type === 'default_cards');
 
@@ -22,9 +23,9 @@ async function getBulkMetadata() {
     };
 }
 
-async function getLocalMetadata() {
+async function getLocalBulkMetadata() {
     console.log("Checking local data info...");
-    if(!fs.existsSync(METADATA_PATH)) {
+    if (!fs.existsSync(METADATA_PATH)) {
         return null;
     }
 
@@ -32,13 +33,44 @@ async function getLocalMetadata() {
         const data = fs.readFileSync(METADATA_PATH, 'utf-8');
         return JSON.parse(data);
     } catch (error) {
-        console.log("Error with metadata file, will re-download");
+        console.log("⚠️ Error with metadata file, will re-download");
         return null;
     }
 }
 
-async function saveMetadata(metadata) {
+async function saveBulkMetadata(metadata) {
     fs.writeFileSync(METADATA_PATH, JSON.stringify(metadata, null, 2));
+}
+
+async function getImportMetadata() {
+    if (!fs.existsSync(IMPORT_METADATA_PATH)) {
+        return null;
+    }
+
+    try {
+        const data = fs.readFileSync(IMPORT_METADATA_PATH, 'utf-8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.log("⚠️ Error with import metadata file");
+        return null;
+    }
+}
+
+async function saveImportMetadata(bulkMetadata, stats) {
+    const importMeta = {
+        last_import_date: new Date().toISOString(),
+        bulk_updated_at: bulkMetadata.updated_at,
+        bulk_size: bulkMetadata.size,
+        import_stats: {
+            card_added: stats.cardsAdded,
+            sets_added: stats.setsAdded,
+            printings_added: stats.printingsAdded,
+            total_processed: stats.total_processed,
+        }
+    };
+
+    fs.writeFileSync(IMPORT_METADATA_PATH, JSON.stringify(importMeta, null, 2));
+    console.log("📝 Import metadata saved");
 }
 
 async function downloadBulkData() {
@@ -48,7 +80,7 @@ async function downloadBulkData() {
     const url = metadata.download_uri;
 
     console.log(`Downloading from ${url}`);
-    const res= await axios.get(url, {responseType: 'stream'});
+    const res = await axios.get(url, {responseType: 'stream'});
 
     if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, {recursive: true});
@@ -57,11 +89,11 @@ async function downloadBulkData() {
     const writer = fs.createWriteStream(BULK_PATH);
     res.data.pipe(writer);
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         writer.on('finish', async () => {
             console.log("Bulk data downloaded successfully!");
-            await saveMetadata(metadata);
-            resolve();
+            await saveBulkMetadata(metadata);
+            resolve(metadata);
         });
         writer.on('error', (err) => {
             reject(err);
@@ -71,37 +103,77 @@ async function downloadBulkData() {
 
 async function checkAndUpdateBulkData() {
     try {
-        const [localMeta, remoteMeta] = await Promise.all([
-            getLocalMetadata(),
+        const [localBulkMeta, remoteMeta] = await Promise.all([
+            getLocalBulkMetadata(),
             getBulkMetadata()
         ]);
 
-        if(!fs.existsSync(BULK_PATH) || !localMeta) {
-            console.log("No local data found, downloading...");
-            await downloadBulkData();
-            return;
+        if (!fs.existsSync(BULK_PATH) || !localBulkMeta) {
+            console.log("📥 No local bulk data found, downloading...");
+            const metadata = await downloadBulkData();
+            return {hasNewData: true, metadata};
         }
 
-        const localDate = new Date(localMeta.updated_at);
+        const localDate = new Date(localBulkMeta.updated_at);
         const remoteDate = new Date(remoteMeta.updated_at);
 
-        if(remoteDate > localDate) {
+        if (remoteDate > localDate) {
             console.log(`New data available ! Local = ${localDate.toISOString()}, Remote= ${remoteDate.toISOString()}`);
-            await downloadBulkData();
+            const metadata = await downloadBulkData();
+            return {hasNewData: true, metadata};
         } else {
             console.log("Local data is up to date ✅");
+            return {hasNewData: false, metadata: localBulkMeta};
         }
     } catch (error) {
-        console.log("Error checking bulk data:",error);
+        console.error("❌ Error checking bulk data:", error.message);
         if (!fs.existsSync(BULK_PATH)) {
             throw error;
         }
+        console.log("⚠️ Using existing local data due to network error");
+        const localMeta = await getLocalBulkMetadata();
+        return {hasNewData: false, metadata: localMeta};
     }
+}
+
+async function shouldRunImport(bulkMetadata) {
+    const importMeta = await getImportMetadata();
+    if (!importMeta) {
+        console.log("🆕 First import, will process all data");
+        return true;
+    }
+
+    const bulkDate = new Date(bulkMetadata.updated_at);
+    const lastImportBulkDate = new Date(importMeta.bulk_updated_at);
+
+    if (bulkDate > lastImportBulkDate) {
+        console.log("🆕 Bulk data is newer than last import");
+        console.log(`   Last import was from: ${lastImportBulkDate.toISOString()}`);
+        console.log(`   Current bulk data:    ${bulkDate.toISOString()}`);
+        return true;
+    }
+
+    console.log("✅ Database is already up to date with current bulk data");
+    console.log(`   Last import: ${importMeta.last_import_date}`);
+    console.log(`   Bulk data:   ${importMeta.bulk_updated_at}`);
+    console.log(`   Stats: +${importMeta.import_stats.cards_added} cards, +${importMeta.import_stats.sets_added} sets, +${importMeta.import_stats.printings_added} printings`);
+    return false;
 }
 
 async function importCards() {
 
-    await checkAndUpdateBulkData();
+    console.log("🚀 Starting import process...");
+
+    const {hasNewData, metadata} = await checkAndUpdateBulkData();
+
+    const shouldImport = await shouldRunImport(metadata);
+
+    if (!shouldImport) {
+        console.log("🎯 No import needed, exiting gracefully");
+        return;
+    }
+
+    console.log("💪 Starting database import...");
 
     const rawData = JSON.parse(fs.readFileSync(BULK_PATH, "utf-8"));
     await AppDataSource.initialize();
@@ -113,9 +185,9 @@ async function importCards() {
     console.log("🔄 Loading existing data...");
 
     const [existingCards, existingSets, existingPrintings] = await Promise.all([
-        cardRepo.find({select:['oracle_id']}),
-        setRepo.find({select:['code']}),
-        printingRepo.find({select:['id']}),
+        cardRepo.find({select: ['oracle_id']}),
+        setRepo.find({select: ['code']}),
+        printingRepo.find({select: ['id']}),
     ]);
 
     const existingOracleIds = new Set(existingCards.map(c => c.oracle_id));
@@ -124,92 +196,115 @@ async function importCards() {
 
     console.log(`📊 Existing: ${existingOracleIds.size} cards, ${existingSetCodes.size} sets, ${existingPrintingIds.size} printings`);
 
-    const newCards = [];
-    const newSets = [];
-    const newPrintings = [];
+    const cardsToUpsert = [];
+    const setsToUpsert = [];
+    const printingsToUpsert = [];
     const processedSets = new Set();
 
-    console.log("🔄 Processing entries...");
+    console.log("🔄 Processing entries for upsert...");
     let count = 0;
+    let newCardsCount = 0;
+    let newSetsCount = 0;
+    let newPrintingsCount = 0;
 
     for (const entry of rawData) {
         if (!entry.oracle_id || entry.layout === 'token') continue;
 
-        if(!existingOracleIds.has(entry.oracle_id)){
-            newCards.push({
-                oracle_id: entry.oracle_id,
-                name: entry.name,
-                type_line: entry.type_line,
-                oracle_text: entry.oracle_text,
-                cmc: entry.cmc,
-                power: entry.power,
-                toughness: entry.toughness,
-            });
-            existingOracleIds.add(entry.oracle_id);
+        cardsToUpsert.push({
+            oracle_id: entry.oracle_id,
+            name: entry.name,
+            type_line: entry.type_line,
+            oracle_text: entry.oracle_text,
+            cmc: entry.cmc,
+            power: entry.power,
+            toughness: entry.toughness,
+        });
+
+        if (!existingOracleIds.has(entry.oracle_id)) {
+            newCardsCount++;
         }
 
-        if(!existingSetCodes.has(entry.set) && !processedSets.has(entry.set)) {
-            newSets.push({
+        if (!processedSets.has(entry.set)) {
+            setsToUpsert.push({
                 code: entry.set,
                 name: entry.set_name,
                 release_date: new Date(entry.released_at),
                 set_type: entry.set_type,
-            })
-            existingSetCodes.add(entry.set);
-            processedSets.add(entry.set);
-        }
-        if (!existingPrintingIds.has(entry.id)){
-            newPrintings.push({
-                id: entry.id,
-                card:{oracle_id: entry.oracle_id},
-                set:{ code: entry.set},
-                collector_number: entry.collector_number,
-                rarity: entry.rarity,
-                image_uris: entry.image_uris?? null,
-                flavor_text: entry.flavor_text?? null,
-                artist: entry.artist?? null,
             });
-            existingPrintings.push(entry.id);
+
+            processedSets.add(entry.set);
+
+            if (!existingSetCodes.has(entry.set)) {
+                newSetsCount++;
+            }
+        }
+
+        printingsToUpsert.push({
+            id: entry.id,
+            card: {oracle_id: entry.oracle_id},
+            set: {code: entry.set},
+            collector_number: entry.collector_number,
+            rarity: entry.rarity,
+            image_uris: entry.image_uris ?? null,
+            flavor_text: entry.flavor_text ?? null,
+            artist: entry.artist ?? null,
+        });
+
+        if (!existingPrintingIds.has(entry.id)) {
+            newPrintingsCount++;
         }
         count++;
-        // console.log(`✅ ${count} cartes traitées...`);
         if (count % 10000 === 0) {
             console.log(`🔄 Processed ${count} entries...`);
         }
     }
 
-    console.log(`📈 To insert: ${newCards.length} cards, ${newSets.length} sets, ${newPrintings.length} printings`);
+    console.log(`📈 To upsert: ${cardsToUpsert.length} cards, ${setsToUpsert.length} sets, ${printingsToUpsert.length} printings`);
 
     const BATCH_SIZE = 1000;
-    if (newCards.length > 0) {
+    if (cardsToUpsert.length > 0) {
         console.log("💾 Inserting cards...");
-        for(let i = 0; i < newCards.length; i+= BATCH_SIZE) {
-            const batch = newCards.slice(i, i + BATCH_SIZE);
-            await cardRepo.insert(batch);
-            console.log(`📦 Cards batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(newCards.length / BATCH_SIZE)}`);
+        for (let i = 0; i < cardsToUpsert.length; i += BATCH_SIZE) {
+            const batch = cardsToUpsert.slice(i, i + BATCH_SIZE);
+            await cardRepo.upsert(batch, ['oracle_id']);
+            console.log(`   📦 Cards batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(cardsToUpsert.length / BATCH_SIZE)}`);
         }
     }
 
-    if (newSets.length > 0) {
+    if (setsToUpsert.length > 0) {
         console.log("💾 Inserting sets...");
-        for (let i = 0; i < newSets.length; i += BATCH_SIZE) {
-            const batch = newSets.slice(i, i + BATCH_SIZE);
-            await setRepo.insert(batch);
-            console.log(`📦 Sets batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(newSets.length / BATCH_SIZE)}`);
+        for (let i = 0; i < setsToUpsert.length; i += BATCH_SIZE) {
+            const batch = setsToUpsert.slice(i, i + BATCH_SIZE);
+            await setRepo.upsert(batch, ['code']);
+            console.log(`   📦 Sets batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(setsToUpsert.length / BATCH_SIZE)}`);
         }
     }
 
-    if(newPrintings.length > 0) {
+    if (printingsToUpsert.length > 0) {
         console.log("💾 Inserting printings...");
-        for (let i = 0; i < newPrintings.length; i += BATCH_SIZE) {
-            const batch = newPrintings.slice(i, i + BATCH_SIZE);
-            await printingRepo.insert(batch);
-            console.log(`📦 Printings batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(newPrintings.length / BATCH_SIZE)}`);
+        for (let i = 0; i < printingsToUpsert.length; i += BATCH_SIZE) {
+            const batch = printingsToUpsert.slice(i, i + BATCH_SIZE);
+            await printingRepo.upsert(batch, ['id']);
+            console.log(`   📦 Printings batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(printingsToUpsert.length / BATCH_SIZE)}`);
         }
     }
+
+    const stats = {
+        cardsAdded: newCardsCount,
+        setsAdded: newSetsCount,
+        printingsAdded: newPrintingsCount,
+        totalProcessed: count,
+        cardsUpserted: cardsToUpsert.length,
+        setsUpserted: setsToUpsert.length,
+        printingsUpserted: printingsToUpsert.length,
+    };
+
+    await saveImportMetadata(metadata, stats);
 
     console.log("✅ Import finished!");
-    console.log(`📊 Final stats: +${newCards.length} cards, +${newSets.length} sets, +${newPrintings.length} printings`);
+    console.log(`📊 Final stats: +${newCardsCount} new cards, +${newSetsCount} new sets, +${newPrintingsCount} new printings`);
+    console.log(`🔄 Total upserted: ${cardsToUpsert.length} cards, ${setsToUpsert.length} sets, ${printingsToUpsert.length} printings`);
+
     process.exit(0);
 }
 
