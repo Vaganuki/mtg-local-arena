@@ -61,6 +61,7 @@ async function saveImportMetadata(bulkMetadata, stats) {
         last_import_date: new Date().toISOString(),
         bulk_updated_at: bulkMetadata.updated_at,
         bulk_size: bulkMetadata.size,
+        hasNewData: stats.hasNewData,
         import_stats: {
             card_added: stats.cardsAdded,
             sets_added: stats.setsAdded,
@@ -156,7 +157,6 @@ async function shouldRunImport(bulkMetadata) {
     console.log("✅ Database is already up to date with current bulk data");
     console.log(`   Last import: ${importMeta.last_import_date}`);
     console.log(`   Bulk data:   ${importMeta.bulk_updated_at}`);
-    console.log(`   Stats: +${importMeta.import_stats.cards_added} cards, +${importMeta.import_stats.sets_added} sets, +${importMeta.import_stats.printings_added} printings`);
     return false;
 }
 
@@ -196,8 +196,8 @@ async function importCards() {
 
     console.log(`📊 Existing: ${existingOracleIds.size} cards, ${existingSetCodes.size} sets, ${existingPrintingIds.size} printings`);
 
-    const cardsToUpsert = [];
-    const setsToUpsert = [];
+    const cardsToUpsert = new Map();
+    const setsToUpsert = new Map();
     const printingsToUpsert = [];
     const processedSets = new Set();
 
@@ -210,7 +210,7 @@ async function importCards() {
     for (const entry of rawData) {
         if (!entry.oracle_id || entry.layout === 'token') continue;
 
-        cardsToUpsert.push({
+        cardsToUpsert.set(entry.oracle_id, {
             oracle_id: entry.oracle_id,
             name: entry.name,
             type_line: entry.type_line,
@@ -225,7 +225,7 @@ async function importCards() {
         }
 
         if (!processedSets.has(entry.set)) {
-            setsToUpsert.push({
+            setsToUpsert.set(entry.set, {
                 code: entry.set,
                 name: entry.set_name,
                 release_date: new Date(entry.released_at),
@@ -259,24 +259,28 @@ async function importCards() {
         }
     }
 
-    console.log(`📈 To upsert: ${cardsToUpsert.length} cards, ${setsToUpsert.length} sets, ${printingsToUpsert.length} printings`);
-
     const BATCH_SIZE = 1000;
-    if (cardsToUpsert.length > 0) {
+
+    const cardsArray = Array.from(cardsToUpsert.values());
+    const setsArray = Array.from(setsToUpsert.values());
+
+    console.log(`📈 To upsert: ${cardsArray.length} cards, ${setsArray.length} sets, ${printingsToUpsert.length} printings`);
+
+    if (cardsArray.length > 0) {
         console.log("💾 Inserting cards...");
-        for (let i = 0; i < cardsToUpsert.length; i += BATCH_SIZE) {
-            const batch = cardsToUpsert.slice(i, i + BATCH_SIZE);
+        for (let i = 0; i < cardsArray.length; i += BATCH_SIZE) {
+            const batch = cardsArray.slice(i, i + BATCH_SIZE);
             await cardRepo.upsert(batch, ['oracle_id']);
-            console.log(`   📦 Cards batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(cardsToUpsert.length / BATCH_SIZE)}`);
+            console.log(`   📦 Cards batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(cardsArray.length / BATCH_SIZE)}`);
         }
     }
 
-    if (setsToUpsert.length > 0) {
+    if (setsArray.length > 0) {
         console.log("💾 Inserting sets...");
-        for (let i = 0; i < setsToUpsert.length; i += BATCH_SIZE) {
-            const batch = setsToUpsert.slice(i, i + BATCH_SIZE);
+        for (let i = 0; i < setsArray.length; i += BATCH_SIZE) {
+            const batch = setsArray.slice(i, i + BATCH_SIZE);
             await setRepo.upsert(batch, ['code']);
-            console.log(`   📦 Sets batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(setsToUpsert.length / BATCH_SIZE)}`);
+            console.log(`   📦 Sets batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(setsArray.length / BATCH_SIZE)}`);
         }
     }
 
@@ -294,16 +298,17 @@ async function importCards() {
         setsAdded: newSetsCount,
         printingsAdded: newPrintingsCount,
         totalProcessed: count,
-        cardsUpserted: cardsToUpsert.length,
-        setsUpserted: setsToUpsert.length,
+        cardsUpserted: cardsArray.length,
+        setsUpserted: setsArray.length,
         printingsUpserted: printingsToUpsert.length,
+        hasNewData: hasNewData,
     };
 
     await saveImportMetadata(metadata, stats);
 
     console.log("✅ Import finished!");
     console.log(`📊 Final stats: +${newCardsCount} new cards, +${newSetsCount} new sets, +${newPrintingsCount} new printings`);
-    console.log(`🔄 Total upserted: ${cardsToUpsert.length} cards, ${setsToUpsert.length} sets, ${printingsToUpsert.length} printings`);
+    console.log(`🔄 Total upserted: ${cardsArray.length} cards, ${setsArray.length} sets, ${printingsToUpsert.length} printings`);
 
     process.exit(0);
 }
