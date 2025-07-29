@@ -1,15 +1,17 @@
 import express from "express";
-import swaggerUi from "swagger-ui-express";
-import swaggerDoc from "./swagger.json";
-import {AppDataSource} from "./data-source"
-import {JwtMiddleware} from "./middlewares/jwt.middleware";
-import routes from "./routes/index.router";
-// import {User} from "./entity/User"
-
-const port = process.env.PORT || 3000;
 const app = express();
 
+import dotenv from "dotenv";
+dotenv.config();
 
+import swaggerUi from "swagger-ui-express";
+import swaggerDoc from "./swagger.json";
+import {JwtMiddleware} from "./middlewares/jwt.middleware";
+
+import routes from "./routes/index.router";
+const port = process.env.PORT;
+
+import {AppDataSource} from "./data-source"
 AppDataSource.initialize().then(async () => {
     // console.log("Here you can set up and run express / fastify / any other framework.")
 

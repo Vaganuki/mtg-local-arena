@@ -2,7 +2,7 @@ import {Request, Response} from "express";
 import {AppDataSource} from "../data-source";
 import {User} from "../entity/User";
 import * as argon2 from "argon2";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 export class UserController {
 
@@ -152,11 +152,11 @@ export class UserController {
                     username: user.username,
                     email: user.email,
                 },
-                process.env.JWT_SECRET as string,
-                // {
-                //     expiresIn: process.env.JWT_EXPIRES,
-                //     algorithm: process.env.JWT_ALGORITHM as jwt.Algorithm,
-                // }
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: '1d',
+                    algorithm: 'HS256',
+                }
             );
 
             return res.status(202).json({token});

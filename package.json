@@ -23,6 +23,7 @@
    "dependencies": {
       "argon2": "^0.43.0",
       "axios": "^1.10.0",
+      "dotenv": "^17.2.1",
       "express": "^5.1.0",
       "jsonwebtoken": "^9.0.2",
       "multer": "^2.0.1",
@@ -34,6 +35,7 @@
       "zod": "^3.25.73"
    },
    "devDependencies": {
+      "@types/dotenv": "^6.1.1",
       "@types/express": "^5.0.3",
       "@types/jsonwebtoken": "^9.0.10",
       "@types/node": "^22.16.5",

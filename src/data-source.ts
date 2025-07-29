@@ -17,11 +17,12 @@ import {cardSet} from "./entity/CardSet";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
-    host: "localhost",
-    port: 5432,
-    username: "postgres",
-    password: "admin",
-    database: "LABO_FIN",
+    host: process.env.DB_HOST,
+    port: +process.env.DB_PORT,
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME, // Replace by the process in prod (I hate it here)
+    // database: process.env.DB_NAME,
     synchronize: true, // À retirer en prod
     logging: true,
     entities: [
