@@ -1,27 +1,25 @@
-import { AppDataSource } from "./data-source"
-import { User } from "./entity/User"
+import express from "express";
+import swaggerUi from "swagger-ui-express";
+import swaggerDoc from "./swagger.json";
+import {AppDataSource} from "./data-source"
+// import {User} from "./entity/User"
+
+const port = process.env.PORT || 3000;
+const app = express();
+
 
 AppDataSource.initialize().then(async () => {
 
-    console.log("Inserting a new user into the database...")
-    const user = new User()
-    user.username = " user 1";
-    user.firstName = "Timber";
-    user.lastName = "Saw";
-    user.password = "123456";
-    user.email = "Ch@test.test";
-    user.birthdate = new Date();
-    console.log(user);
-    console.log()
-    console.log()
-    console.log()
-    await AppDataSource.manager.save(user)
-    console.log("Saved a new user with id: " + user.id)
+    app.use(express.json());
 
-    console.log("Loading users from the database...")
-    const users = await AppDataSource.manager.find(User)
-    console.log("Loaded users: ", users)
+    // console.log("Here you can setup and run express / fastify / any other framework.")
 
-    console.log("Here you can setup and run express / fastify / any other framework.")
+    app.get("/", (req: express.Request, res: express.Response) => {
+        res.status(200).json("hello_world('print');")
+    })
+    app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+    app.listen(port, () => {
+        console.log("Server started on port " + port);
+    })
 
-}).catch(error => console.log(error))
+}).catch(error => console.log(error));
