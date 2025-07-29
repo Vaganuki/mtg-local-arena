@@ -153,10 +153,10 @@ export class UserController {
                     email: user.email,
                 },
                 process.env.JWT_SECRET as string,
-                {
-                    expiresIn: process.env.JWT_EXPIRES,
-                    algorithm: process.env.JWT_ALGORITHM as jwt.Algorithm,
-                }
+                // {
+                //     expiresIn: process.env.JWT_EXPIRES,
+                //     algorithm: process.env.JWT_ALGORITHM as jwt.Algorithm,
+                // }
             );
 
             return res.status(202).json({token});
