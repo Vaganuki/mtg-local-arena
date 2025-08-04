@@ -7,6 +7,7 @@ dotenv.config();
 import swaggerUi from "swagger-ui-express";
 import swaggerDoc from "./swagger.json";
 import {JwtMiddleware} from "./middlewares/jwt.middleware";
+import cors from "cors";
 
 import routes from "./routes/index.router";
 const port = process.env.PORT;
@@ -18,6 +19,12 @@ AppDataSource.initialize().then(async () => {
     app.use(express.json());
     app.use(JwtMiddleware);
     app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+
+
+    app.use(cors({
+        origin: "http://localhost:4200",
+        credentials: true,
+    }));
 
     app.use(routes);
 
