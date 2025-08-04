@@ -21,8 +21,7 @@ export const AppDataSource = new DataSource({
     port: +process.env.DB_PORT,
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME, // Replace by the process in prod (I hate it here)
-    // database: process.env.DB_NAME,
+    database: process.env.DB_NAME,
     synchronize: true, // À retirer en prod
     logging: true,
     entities: [
