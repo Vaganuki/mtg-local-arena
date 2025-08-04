@@ -28,6 +28,7 @@ export class UserController {
             }
 
             const hashedPassword = await argon2.hash(password);
+            const createdAt = new Date().toISOString();
 
             const user = userRepo.create({
                 username,
@@ -37,6 +38,7 @@ export class UserController {
                 lastName,
                 birthdate: new Date(birthdate),
                 profileImage,
+                createdAt,
             });
 
             const savedUser = await userRepo.save(user);
