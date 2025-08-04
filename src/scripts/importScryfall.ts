@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import * as fs from 'fs';
 import * as path from 'path';
 import {AppDataSource} from "../data-source";
