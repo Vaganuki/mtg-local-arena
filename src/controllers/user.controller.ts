@@ -3,11 +3,12 @@ import {AppDataSource} from "../data-source";
 import {User} from "../entity/User";
 import * as argon2 from "argon2";
 import jwt from "jsonwebtoken";
+import {AuthRequest} from "../@types/authRequest.type";
 
 export class UserController {
 
     static async addNewUser(req: Request, res: Response): Promise<Response> {
-        const profileImage = null;
+        const avatar = null;
         const userRepo = AppDataSource.getRepository(User);
 
         const {
@@ -37,7 +38,7 @@ export class UserController {
                 firstName,
                 lastName,
                 birthdate: new Date(birthdate),
-                profileImage,
+                avatar,
                 createdAt,
             });
 
@@ -65,6 +66,47 @@ export class UserController {
             return res.status(200).json(user);
         } catch (error) {
             console.error(error);
+            return res.status(500).json({error: "An unexpected error occurred."});
+        }
+    }
+
+    static async getUserByUsername(req: AuthRequest, res: Response): Promise<Response> {
+        const {username} = req.params;
+        const currentUserId = req.user?.id;
+        const userRepo = AppDataSource.getRepository(User);
+
+        try {
+
+            const user = await userRepo.findOne({where: {username}});
+
+            if (!user) {
+                return res.status(404).json({error: "User not found."});
+            }
+
+            const isOwnProfile = user.id === currentUserId;
+
+            if (isOwnProfile) {
+                return res.status(302).json({
+                    user: {...user},
+                    isOwnProfile: true,
+                    canEdit: true,
+                });
+            }
+
+            const publicProfile = {
+                user: {
+                    username: user.username,
+                    colorIdentity: user.colorIdentity,
+                    pronouns: user.pronouns,
+                    avatar: user.avatar,
+                    createdAt: user.createdAt,
+                },
+                isOwnProfile: false,
+                canEdit: false,
+            }
+
+            res.status(302).json(publicProfile);
+        } catch (err) {
             return res.status(500).json({error: "An unexpected error occurred."});
         }
     }

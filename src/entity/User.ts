@@ -30,13 +30,13 @@ export class User {
     birthdate: Date;
 
     @Column({type: 'varchar', length: 6, nullable: true})
-    colorIdentity: string;
+    colorIdentity: string | null;
 
     @Column({type: 'varchar', length: 30, nullable: true})
-    pronouns: string;
+    pronouns: string | null;
 
     @Column({type: 'text', nullable: true})
-    profileImage: string | null;
+    avatar: string | null;
 
     @Column({type: 'date'})
     createdAt: Date;
