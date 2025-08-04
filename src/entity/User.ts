@@ -29,19 +29,28 @@ export class User {
     @Column()
     birthdate: Date;
 
+    @Column({type: 'varchar', length: 6, nullable: true})
+    colorIdentity: string;
+
+    @Column({type: 'varchar', length: 30, nullable: true})
+    pronouns: string;
+
     @Column({type: 'text', nullable: true})
     profileImage: string | null;
 
-    @OneToMany(()=> Thread, (thread) => thread.user)
+    @Column({type: 'date'})
+    createdAt: Date;
+
+    @OneToMany(() => Thread, (thread) => thread.user)
     threads: Thread[];
 
-    @OneToMany(()=> Favorite_format, (favorite) => favorite.user)
+    @OneToMany(() => Favorite_format, (favorite) => favorite.user)
     favorites: Favorite_format[];
 
-    @OneToMany(()=> Decklist, (deck) => deck.user)
+    @OneToMany(() => Decklist, (deck) => deck.user)
     decklists: Decklist[];
 
-    @OneToMany(()=> Comment, (comment) => comment.user)
+    @OneToMany(() => Comment, (comment) => comment.user)
     comments: Comment[];
 
     @ManyToMany(() => Participation, (participation) => participation.users)
