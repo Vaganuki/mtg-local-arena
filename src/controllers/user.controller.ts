@@ -86,7 +86,7 @@ export class UserController {
             const isOwnProfile = user.id === currentUserId;
 
             if (isOwnProfile) {
-                return res.status(302).json({
+                return res.status(200).json({
                     user: {...user},
                     isOwnProfile: true,
                     canEdit: true,
@@ -105,7 +105,7 @@ export class UserController {
                 canEdit: false,
             }
 
-            res.status(302).json(publicProfile);
+            res.status(200).json(publicProfile);
         } catch (err) {
             return res.status(500).json({error: "An unexpected error occurred."});
         }
