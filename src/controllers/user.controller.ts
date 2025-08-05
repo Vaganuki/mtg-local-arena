@@ -128,20 +128,38 @@ export class UserController {
                 lastName,
                 birthdate,
                 password,
+                colorIdentity,
+                pronouns,
             } = req.body;
 
             //Profile image, you know the drill;
+
+            if(username && username!== user.username) {
+                const existing = await userRepo.findOne({where: {username}});
+                if (existing) return res.status(409).json({error: "Username already taken."});
+            }
+
+            if(email && email !== user.email) {
+                const existing = await userRepo.findOne({where: {email}});
+                if (existing) return res.status(409).json({error: "Email already taken."});
+            }
 
             user.username = username ?? user.username;
             user.email = email ?? user.email;
             user.firstName = firstName ?? user.firstName;
             user.lastName = lastName ?? user.lastName;
             user.birthdate = birthdate ? new Date(birthdate) : user.birthdate;
-            user.password = password ?? user.password;
+            user.colorIdentity = colorIdentity ?? user.colorIdentity;
+            user.pronouns = pronouns ?? user.pronouns;
+
+            if (password) user.password = await argon2.hash(password);
 
             const updated = await userRepo.save(user);
 
-            return res.status(200).json(updated);
+            const {password: _, ...userWithoutPassword} = updated;
+
+            return res.status(200).json(userWithoutPassword);
+
         } catch (error) {
             // if profileImage then delete image (I don't wanna do mutler rn so yeah don't mind me pls;
             console.error(error);

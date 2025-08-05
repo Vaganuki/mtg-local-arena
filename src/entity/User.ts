@@ -29,11 +29,11 @@ export class User {
     @Column()
     birthdate: Date;
 
-    @Column({type: 'varchar', length: 6, nullable: true})
-    colorIdentity: string | null;
+    @Column({type: 'varchar', length: 6, default:''})
+    colorIdentity: string;
 
-    @Column({type: 'varchar', length: 30, nullable: true})
-    pronouns: string | null;
+    @Column({type: 'varchar', length: 30, default:''})
+    pronouns: string;
 
     @Column({type: 'text', nullable: true})
     avatar: string | null;

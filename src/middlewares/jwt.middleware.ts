@@ -37,3 +37,18 @@ export const optionalAuth = (req: AuthRequest, res: Response, next: NextFunction
         return next();
     }
 }
+
+export const checkProfileOwnership = (req: AuthRequest, res: Response, next: NextFunction) => {
+    const targetUserId = +req.params.id;
+    const currentUserId = +req.user?.id;
+
+    if(!currentUserId) {
+        return res.status(401).json({error: "Authentication required"});
+    }
+
+    if(currentUserId !== targetUserId) {
+        return res.status(403).json({error: "You can only modify your own profile"});
+    }
+
+    next();
+}
