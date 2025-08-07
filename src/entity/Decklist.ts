@@ -11,7 +11,7 @@ export class Decklist {
     @Column()
     name: string;
 
-    @Column()
+    @Column({nullable: true})
     main_card_id: string;
 
     @ManyToOne(() => User, (user) => user.decklists)
