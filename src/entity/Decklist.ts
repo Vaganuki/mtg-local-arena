@@ -14,6 +14,12 @@ export class Decklist {
     @Column({nullable: true})
     main_card_id: string;
 
+    @Column({type: 'date'})
+    created_at: Date;
+
+    @Column({type: 'date'})
+    last_updated: Date;
+
     @ManyToOne(() => User, (user) => user.decklists)
     user: User;
 

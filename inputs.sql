@@ -1,5 +1,6 @@
 INSERT INTO game_format (name)
-VALUES ('Standard'),
+VALUES ('none'),
+       ('Standard'),
        ('Pioneer'),
        ('Modern'),
        ('Legacy'),
