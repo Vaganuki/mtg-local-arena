@@ -12,7 +12,7 @@ export class Decklist {
     name: string;
 
     @Column()
-    main_card_id: number;
+    main_card_id: string;
 
     @ManyToOne(() => User, (user) => user.decklists)
     user: User;
