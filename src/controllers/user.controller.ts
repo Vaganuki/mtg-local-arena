@@ -8,19 +8,19 @@ import {AuthRequest} from "../@types/authRequest.type";
 export class UserController {
 
     static async addNewUser(req: Request, res: Response): Promise<Response> {
-        const avatar = null;
-        const userRepo = AppDataSource.getRepository(User);
-
-        const {
-            username,
-            email,
-            firstName,
-            lastName,
-            password,
-            birthdate,
-        } = req.body;
-
         try {
+            const avatar = null;
+            const userRepo = AppDataSource.getRepository(User);
+
+            const {
+                username,
+                email,
+                firstName,
+                lastName,
+                password,
+                birthdate,
+            } = req.body;
+
             const existing = await userRepo.findOne({where: [{username}, {email}]});
 
             if (existing) {
@@ -53,10 +53,10 @@ export class UserController {
     }
 
     static async getUserById(req: Request, res: Response): Promise<Response> {
-        const userId = parseInt(req.params.id);
-        const userRepo = AppDataSource.getRepository(User);
-
         try {
+            const userId = parseInt(req.params.id);
+            const userRepo = AppDataSource.getRepository(User);
+
             const user = await userRepo.findOne({where: {id: userId}});
 
             if (!user) {
@@ -71,11 +71,11 @@ export class UserController {
     }
 
     static async getUserByUsername(req: AuthRequest, res: Response): Promise<Response> {
-        const {username} = req.params;
-        const currentUserId = req.user?.id;
-        const userRepo = AppDataSource.getRepository(User);
-
         try {
+            const {username} = req.params;
+            const currentUserId = req.user?.id;
+            const userRepo = AppDataSource.getRepository(User);
+
 
             const user = await userRepo.findOne({where: {username}});
 
@@ -112,10 +112,10 @@ export class UserController {
     }
 
     static async updateUser(req: Request, res: Response): Promise<Response> {
-        const userId = parseInt(req.params.id);
-        const userRepo = AppDataSource.getRepository(User);
-
         try {
+            const userId = parseInt(req.params.id);
+            const userRepo = AppDataSource.getRepository(User);
+
             const user = await userRepo.findOne({where: {id: userId}});
             if (!user) {
                 return res.status(404).json({error: "User not found"});
@@ -134,12 +134,12 @@ export class UserController {
 
             //Profile image, you know the drill;
 
-            if(username && username!== user.username) {
+            if (username && username !== user.username) {
                 const existing = await userRepo.findOne({where: {username}});
                 if (existing) return res.status(409).json({error: "Username already taken."});
             }
 
-            if(email && email !== user.email) {
+            if (email && email !== user.email) {
                 const existing = await userRepo.findOne({where: {email}});
                 if (existing) return res.status(409).json({error: "Email already taken."});
             }
@@ -169,10 +169,10 @@ export class UserController {
 
     static async deleteUser(req: Request, res: Response): Promise<Response> {
 
-        const userId = parseInt(req.params.id);
-        const userRepo = AppDataSource.getRepository(User);
-
         try {
+            const userId = parseInt(req.params.id);
+            const userRepo = AppDataSource.getRepository(User);
+
             const user = await userRepo.findOne({where: {id: userId}});
 
             if (!user) {
@@ -192,10 +192,10 @@ export class UserController {
     }
 
     static async logUser(req: Request, res: Response): Promise<Response> {
-        const {email, password} = req.body;
-        const userRepo = AppDataSource.getRepository(User);
 
         try {
+            const {email, password} = req.body;
+            const userRepo = AppDataSource.getRepository(User);
             const user = await userRepo.findOne({where: {email}});
 
             if (!user) {
