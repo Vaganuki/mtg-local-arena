@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import {AppDataSource} from "../data-source";
 import {Card} from "../entity/Card";
+import {ILike} from "typeorm";
 
 export class CardController {
 
@@ -23,17 +24,19 @@ export class CardController {
             const limit = 20;
 
             const cardRepo = AppDataSource.getRepository(Card);
-            const cards = await cardRepo
-                .createQueryBuilder('card')
-                .where(`to_tsvector('simple', card.name) @@ plainto_tsquery(:query)`, {query})
-                .orderBy(`ts_rank(to_tsvector('simple', card.name), plainto_tsquery(:query))`, 'DESC')
-                .take(limit)
-                .getMany();
+
+            const cards = await cardRepo.find({
+                where: {name: ILike(`%{query}%`)},
+                take: limit,
+                order:{name:'ASC'},
+            });
 
             return res.status(200).json(cards);
+
         } catch (error) {
             console.error(error);
             return res.status(500).json({error: "An unexpected error occurred."});
+
         }
     }
 }
