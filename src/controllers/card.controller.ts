@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
 import {AppDataSource} from "../data-source";
 import {Card} from "../entity/Card";
-import {ILike} from "typeorm";
+import {ILike, Not} from "typeorm";
 
 export class CardController {
 
@@ -26,7 +26,7 @@ export class CardController {
             const cardRepo = AppDataSource.getRepository(Card);
 
             const cards = await cardRepo.find({
-                where: {name: ILike(`%{query}%`)},
+                where: {name: ILike(`%${query}%`), type_line: Not('Card // Card')},
                 take: limit,
                 order:{name:'ASC'},
             });
