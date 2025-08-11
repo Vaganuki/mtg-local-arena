@@ -10,12 +10,14 @@ export class DecklistController {
                 name,
                 main_card_id,
                 game_format,
+                user_id
             } = req.body;
 
             const newDecklist = decklistRepo.create({
                 name,
                 main_card_id,
                 game_format,
+                user: user_id,
                 created_at: new Date().toISOString(),
                 last_updated: new Date().toISOString(),
             });
@@ -30,4 +32,39 @@ export class DecklistController {
 
     }
 
+    static async getAllDecklist(req: Request, res: Response) {
+        try {
+            const decklistRepo = AppDataSource.getRepository(Decklist);
+            const data = await decklistRepo.find();
+            console.log(data);
+
+            res.status(200).json(data);
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json('An unexpected error occurred.');
+        }
+    }
+
+    static async getRecentDecklist(req: Request, res: Response) {
+        try {
+            const {page = 1, limit = 20} = req.query;
+            const offset = (+page - 1) * +limit;
+
+            const decklistRepo = AppDataSource.getRepository(Decklist);
+
+            const data = await decklistRepo.find({
+                take: +limit,
+                skip: +offset,
+                order: {
+                    created_at: 'desc',
+                    name: 'ASC'
+                }
+            });
+
+            res.status(200).json(data);
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json('An unexpected error occurred.');
+        }
+    }
 }
