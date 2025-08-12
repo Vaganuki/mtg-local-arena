@@ -1,5 +1,6 @@
 import {Column, Entity, OneToMany, PrimaryColumn} from "typeorm";
 import {Card_printing} from "./Card_printing";
+import {Deck_card} from "./Deck_card";
 
 @Entity()
 export class Card {
@@ -26,4 +27,7 @@ export class Card {
 
     @OneToMany(() => Card_printing, (printing) => printing.card)
     printings: Card_printing[];
+
+    @OneToMany(() => Deck_card, (deck) => deck.card)
+    deckcard: Deck_card;
 }

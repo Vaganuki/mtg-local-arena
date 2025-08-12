@@ -1,5 +1,6 @@
 import {Decklist} from "./Decklist";
 import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Card} from "./Card";
 
 @Entity()
 export class Deck_card {
@@ -14,4 +15,7 @@ export class Deck_card {
 
     @ManyToOne(() => Decklist, (decklist) => decklist.deck)
     decklist: Decklist;
+
+    @ManyToOne(() => Card, (card) => card.deckcard)
+    card: Card;
 }
