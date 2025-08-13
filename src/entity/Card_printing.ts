@@ -1,6 +1,7 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryColumn} from "typeorm";
+import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn} from "typeorm";
 import {Card} from "./Card";
 import {cardSet} from "./CardSet";
+import {Deck_card} from "./Deck_card";
 
 
 @Entity()
@@ -15,6 +16,9 @@ export class Card_printing {
     @ManyToOne(() => cardSet, (set) => set.printings)
     @JoinColumn({name: 'set_code'})
     set: cardSet;
+
+    @OneToMany(() => Deck_card, (deckcard) => deckcard.printing)
+    deckcard: Deck_card;
 
     @Column()
     collector_number: string;
