@@ -7,7 +7,6 @@ deck_listRouter.get('', DecklistController.getAllDecklist)
     .get('/by_user/:user_id', DecklistController.getDeckListByUser)
     .get('/details/:deckId', DecklistController.getDecklistDetails)
     .post('/addCard', DecklistController.addCardToDecklist)
-    .post('/create', DecklistController.createDecklist)
-    ;
+    .post('/create', DecklistController.createDecklist);
 
 export default deck_listRouter;

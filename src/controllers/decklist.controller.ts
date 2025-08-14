@@ -3,7 +3,6 @@ import {AppDataSource} from "../data-source";
 import {Decklist} from "../entity/Decklist";
 import {Deck_card} from "../entity/Deck_card";
 import {Card_printing} from "../entity/Card_printing";
-import {Card} from "../entity/Card";
 
 export class DecklistController {
     static async createDecklist(req: Request, res: Response) {
@@ -60,6 +59,7 @@ export class DecklistController {
 
     static async addCardToDecklist(req: Request, res: Response) {
         try {
+            console.log(req.body);
             const deckCardRepo = AppDataSource.getRepository(Deck_card);
             const printingRepo = AppDataSource.getRepository(Card_printing);
             const decklistRepo = AppDataSource.getRepository(Decklist);
@@ -76,8 +76,15 @@ export class DecklistController {
             const decklist = await decklistRepo.findOne({
                 where: {
                     id: deck_id,
+                },
+                relations:{
+                    user: true,
                 }
             });
+
+            if (!decklist) {
+                res.status(404).json({error: "No decklist found"});
+            }
             if (decklist.user.id === user_id) {
 
                 const printing = await printingRepo.findOne({
@@ -95,7 +102,12 @@ export class DecklistController {
                     printing: printing,
                 })
 
-                return res.status(200).json(newAddedCard);
+
+
+                const savedCard = await deckCardRepo.save(newAddedCard);
+                decklist.last_updated = new Date();
+                await decklistRepo.save(decklist);
+                return res.status(200).json(savedCard);
             } else{
                 return res.status(401).json({error: "Unauthorized user"});
             }
@@ -215,12 +227,28 @@ export class DecklistController {
                 },
                 relations: {
                     card: true,
+                    printing:true,
+                },
+                select: {
+                    printing:{
+                        image_uris: true,
+                    }
                 }
             })
 
             const response = {
-                decklist: deckList,
-                cards: deck
+                id: deckList[0].id,
+                name: deckList[0].name,
+                main_card_id: deckList[0].main_card_id,
+                created_at: deckList[0].created_at,
+                last_updated: deckList[0].last_updated,
+                user: {
+                    username: deckList[0].user.username,
+                },
+                game_format: {
+                    name:deckList[0].game_format.name,
+                },
+                cards: deck,
             };
 
             res.status(200).json(response);

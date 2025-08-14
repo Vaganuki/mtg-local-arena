@@ -95,6 +95,7 @@ export class UserController {
 
             const publicProfile = {
                 user: {
+                    id: user.id,
                     username: user.username,
                     colorIdentity: user.colorIdentity,
                     pronouns: user.pronouns,
