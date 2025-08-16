@@ -16,6 +16,9 @@ export class Card {
     @Column({nullable: true})
     oracle_text: string | null;
 
+    @Column({nullable: true})
+    mana_cost: string | null;
+
     @Column("float")
     cmc: number;
 
@@ -24,6 +27,9 @@ export class Card {
 
     @Column({nullable: true})
     toughness: string | null;
+
+    @Column({nullable: true})
+    loyalty: string | null;
 
     @OneToMany(() => Card_printing, (printing) => printing.card)
     printings: Card_printing[];

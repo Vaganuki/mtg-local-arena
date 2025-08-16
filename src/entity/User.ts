@@ -4,6 +4,7 @@ import {Favorite_format} from "./Favorite_format";
 import {Decklist} from "./Decklist";
 import {Comment} from "./Comment";
 import {Participation} from "./Participation";
+import {Following} from "./Following";
 
 @Entity()
 export class User {
@@ -55,4 +56,7 @@ export class User {
 
     @ManyToMany(() => Participation, (participation) => participation.users)
     participation: Participation[];
+
+    @OneToMany(() => Following, (follow) => follow.follower)
+    following: Following[];
 }

@@ -13,6 +13,7 @@ import {Deck_card} from "./entity/Deck_card";
 import {Comment} from "./entity/Comment";
 import {Participation} from "./entity/Participation";
 import {cardSet} from "./entity/CardSet";
+import {Following} from "./entity/Following";
 
 
 export const AppDataSource = new DataSource({
@@ -38,6 +39,7 @@ export const AppDataSource = new DataSource({
         cardSet,
         Thread,
         User,
+        Following,
     ],
     migrations: [],
     subscribers: [],

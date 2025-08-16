@@ -14,7 +14,7 @@ const METADATA_PATH = path.join(DATA_DIR, 'bulk-metadata.json');
 const IMPORT_METADATA_PATH = path.join(DATA_DIR, 'import-metadata.json');
 
 async function getBulkMetadata() {
-    console.log("🔍 Checking bulk data info...");
+    console.log("Checking bulk data info...");
     const res = await axios.get('https://api.scryfall.com/bulk-data');
     const bulkDefault = res.data.data.find((entry: any) => entry.type === 'default_cards');
 
@@ -35,7 +35,7 @@ async function getLocalBulkMetadata() {
         const data = fs.readFileSync(METADATA_PATH, 'utf-8');
         return JSON.parse(data);
     } catch (error) {
-        console.log("⚠️ Error with metadata file, will re-download");
+        console.log("Error with metadata file, will re-download");
         return null;
     }
 }
@@ -53,7 +53,7 @@ async function getImportMetadata() {
         const data = fs.readFileSync(IMPORT_METADATA_PATH, 'utf-8');
         return JSON.parse(data);
     } catch (err) {
-        console.log("⚠️ Error with import metadata file");
+        console.log("Error with import metadata file");
         return null;
     }
 }
@@ -73,7 +73,7 @@ async function saveImportMetadata(bulkMetadata, stats) {
     };
 
     fs.writeFileSync(IMPORT_METADATA_PATH, JSON.stringify(importMeta, null, 2));
-    console.log("📝 Import metadata saved");
+    console.log("Import metadata saved");
 }
 
 async function downloadBulkData() {
@@ -112,7 +112,7 @@ async function checkAndUpdateBulkData() {
         ]);
 
         if (!fs.existsSync(BULK_PATH) || !localBulkMeta) {
-            console.log("📥 No local bulk data found, downloading...");
+            console.log("No local bulk data found, downloading...");
             const metadata = await downloadBulkData();
             return {hasNewData: true, metadata};
         }
@@ -125,15 +125,15 @@ async function checkAndUpdateBulkData() {
             const metadata = await downloadBulkData();
             return {hasNewData: true, metadata};
         } else {
-            console.log("Local data is up to date ✅");
+            console.log("Local data is up to date");
             return {hasNewData: false, metadata: localBulkMeta};
         }
     } catch (error) {
-        console.error("❌ Error checking bulk data:", error.message);
+        console.error("Error checking bulk data:", error.message);
         if (!fs.existsSync(BULK_PATH)) {
             throw error;
         }
-        console.log("⚠️ Using existing local data due to network error");
+        console.log("Using existing local data due to network error");
         const localMeta = await getLocalBulkMetadata();
         return {hasNewData: false, metadata: localMeta};
     }
@@ -142,7 +142,7 @@ async function checkAndUpdateBulkData() {
 async function shouldRunImport(bulkMetadata) {
     const importMeta = await getImportMetadata();
     if (!importMeta) {
-        console.log("🆕 First import, will process all data");
+        console.log("First import, will process all data");
         return true;
     }
 
@@ -150,13 +150,13 @@ async function shouldRunImport(bulkMetadata) {
     const lastImportBulkDate = new Date(importMeta.bulk_updated_at);
 
     if (bulkDate > lastImportBulkDate) {
-        console.log("🆕 Bulk data is newer than last import");
+        console.log("Bulk data is newer than last import");
         console.log(`   Last import was from: ${lastImportBulkDate.toISOString()}`);
         console.log(`   Current bulk data:    ${bulkDate.toISOString()}`);
         return true;
     }
 
-    console.log("✅ Database is already up to date with current bulk data");
+    console.log("Database is already up to date with current bulk data");
     console.log(`   Last import: ${importMeta.last_import_date}`);
     console.log(`   Bulk data:   ${importMeta.bulk_updated_at}`);
     return false;
@@ -164,18 +164,18 @@ async function shouldRunImport(bulkMetadata) {
 
 async function importCards() {
 
-    console.log("🚀 Starting import process...");
+    console.log("Starting import process...");
 
     const {hasNewData, metadata} = await checkAndUpdateBulkData();
 
     const shouldImport = await shouldRunImport(metadata);
 
     if (!shouldImport) {
-        console.log("🎯 No import needed, exiting gracefully");
+        console.log("No import needed, exiting gracefully");
         return;
     }
 
-    console.log("💪 Starting database import...");
+    console.log("Starting database import...");
 
     const rawData = JSON.parse(fs.readFileSync(BULK_PATH, "utf-8"));
     await AppDataSource.initialize();
@@ -184,7 +184,7 @@ async function importCards() {
     const setRepo = AppDataSource.getRepository(cardSet);
     const printingRepo = AppDataSource.getRepository(Card_printing);
 
-    console.log("🔄 Loading existing data...");
+    console.log("Loading existing data...");
 
     const [existingCards, existingSets, existingPrintings] = await Promise.all([
         cardRepo.find({select: ['oracle_id']}),
@@ -196,14 +196,14 @@ async function importCards() {
     const existingSetCodes = new Set(existingSets.map(s => s.code));
     const existingPrintingIds = new Set(existingPrintings.map(p => p.id));
 
-    console.log(`📊 Existing: ${existingOracleIds.size} cards, ${existingSetCodes.size} sets, ${existingPrintingIds.size} printings`);
+    console.log(`Existing: ${existingOracleIds.size} cards, ${existingSetCodes.size} sets, ${existingPrintingIds.size} printings`);
 
     const cardsToUpsert = new Map();
     const setsToUpsert = new Map();
     const printingsToUpsert = [];
     const processedSets = new Set();
 
-    console.log("🔄 Processing entries for upsert...");
+    console.log("Processing entries for upsert...");
     let count = 0;
     let newCardsCount = 0;
     let newSetsCount = 0;
@@ -218,8 +218,10 @@ async function importCards() {
             type_line: entry.type_line,
             oracle_text: entry.oracle_text,
             cmc: entry.cmc,
+            mana_cost: entry.mana_cost,
             power: entry.power,
             toughness: entry.toughness,
+            loyalty: entry.loyalty
         });
 
         if (!existingOracleIds.has(entry.oracle_id)) {
@@ -257,7 +259,7 @@ async function importCards() {
         }
         count++;
         if (count % 10000 === 0) {
-            console.log(`🔄 Processed ${count} entries...`);
+            console.log(`Processed ${count} entries...`);
         }
     }
 
@@ -266,32 +268,32 @@ async function importCards() {
     const cardsArray = Array.from(cardsToUpsert.values());
     const setsArray = Array.from(setsToUpsert.values());
 
-    console.log(`📈 To upsert: ${cardsArray.length} cards, ${setsArray.length} sets, ${printingsToUpsert.length} printings`);
+    console.log(`To upsert: ${cardsArray.length} cards, ${setsArray.length} sets, ${printingsToUpsert.length} printings`);
 
     if (cardsArray.length > 0) {
-        console.log("💾 Inserting cards...");
+        console.log("Inserting cards...");
         for (let i = 0; i < cardsArray.length; i += BATCH_SIZE) {
             const batch = cardsArray.slice(i, i + BATCH_SIZE);
             await cardRepo.upsert(batch, ['oracle_id']);
-            console.log(`   📦 Cards batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(cardsArray.length / BATCH_SIZE)}`);
+            console.log(`   Cards batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(cardsArray.length / BATCH_SIZE)}`);
         }
     }
 
     if (setsArray.length > 0) {
-        console.log("💾 Inserting sets...");
+        console.log("Inserting sets...");
         for (let i = 0; i < setsArray.length; i += BATCH_SIZE) {
             const batch = setsArray.slice(i, i + BATCH_SIZE);
             await setRepo.upsert(batch, ['code']);
-            console.log(`   📦 Sets batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(setsArray.length / BATCH_SIZE)}`);
+            console.log(`   Sets batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(setsArray.length / BATCH_SIZE)}`);
         }
     }
 
     if (printingsToUpsert.length > 0) {
-        console.log("💾 Inserting printings...");
+        console.log("Inserting printings...");
         for (let i = 0; i < printingsToUpsert.length; i += BATCH_SIZE) {
             const batch = printingsToUpsert.slice(i, i + BATCH_SIZE);
             await printingRepo.upsert(batch, ['id']);
-            console.log(`   📦 Printings batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(printingsToUpsert.length / BATCH_SIZE)}`);
+            console.log(`   Printings batch ${Math.ceil((i + 1) / BATCH_SIZE)}/${Math.ceil(printingsToUpsert.length / BATCH_SIZE)}`);
         }
     }
 
@@ -308,9 +310,9 @@ async function importCards() {
 
     await saveImportMetadata(metadata, stats);
 
-    console.log("✅ Import finished!");
-    console.log(`📊 Final stats: +${newCardsCount} new cards, +${newSetsCount} new sets, +${newPrintingsCount} new printings`);
-    console.log(`🔄 Total upserted: ${cardsArray.length} cards, ${setsArray.length} sets, ${printingsToUpsert.length} printings`);
+    console.log("Import finished!");
+    console.log(`   Final stats: +${newCardsCount} new cards, +${newSetsCount} new sets, +${newPrintingsCount} new printings`);
+    console.log(`   Total upserted: ${cardsArray.length} cards, ${setsArray.length} sets, ${printingsToUpsert.length} printings`);
 
     process.exit(0);
 }

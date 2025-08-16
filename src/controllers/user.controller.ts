@@ -228,5 +228,4 @@ export class UserController {
             return res.status(500).json({error: "An unexpected error occurred."});
         }
     }
-
 }
