@@ -5,6 +5,7 @@ const deck_listRouter = Router();
 deck_listRouter.get('', DecklistController.getAllDecklist)
     .get('/recent', DecklistController.getRecentDecklist)
     .get('/by_user/:user_id', DecklistController.getDeckListByUser)
+    .get('/by_follow/:userID', DecklistController.getLatestDecklistFromFollow)
     .get('/details/:deckId', DecklistController.getDecklistDetails)
     .post('/addCard', DecklistController.addCardToDecklist)
     .post('/create', DecklistController.createDecklist);
